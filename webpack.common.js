@@ -2,7 +2,6 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-    mode: "development",
     entry: {
         LayoutContainer: "./index.js",
         example: "./example/example.js"
@@ -25,12 +24,5 @@ module.exports = {
             }
 
         ]
-    },
-    devtool: "source-map",
-
-    devServer: {
-        contentBase: path.join(__dirname, "dist"),
-        compress: true,
-        port: 9000
     }
 }
