@@ -1,0 +1,60 @@
+ {
+    "id": "container",
+    "type": "LAYOUT_CONTAINER",
+    "path": [],
+    "top": {
+        "id": "cell_top",
+        "type": "LAYOUT_CELL",
+        "path": ["top"],
+        "x": 0,
+        "y": 0,
+        "width": 500,
+        "height": 100,
+        "availableHorizontalSpace": 480,
+        "availableVerticalSpace": 80
+    }, 
+    "leading": {
+        "id": "cell_leading",
+        "type": "LAYOUT_CELL",
+        "path": ["leading"],
+        "x": 0,
+        "y": 100,
+        "width": 150,
+        "height": 300,
+        "availableHorizontalSpace": 130,
+        "availableVerticalSpace": 280
+    },
+    "center": {
+        "id": "cell_center",
+        "type": "LAYOUT_CELL",
+        "path": ["center"],
+        "x": 150,
+        "y": 100,
+        "width": 200,
+        "height": 300,
+        "availableHorizontalSpace": 180,
+        "availableVerticalSpace": 280
+    },
+    "trailing": {
+        "id": "cell_trailing",
+        "type": "LAYOUT_CELL",
+        "path": ["trailing"],
+        "x": 350,
+        "y": 100,
+        "width": 150,
+        "height": 300,
+        "availableHorizontalSpace": 130,
+        "availableVerticalSpace": 280
+    },
+    "bottom": {
+        "id": "cell_bottom",
+        "type": "LAYOUT_CELL",
+        "path": ["bottom"],
+        "x": 0,
+        "y": 400,
+        "width": 500,
+        "height": 100,
+        "availableHorizontalSpace": 480,
+        "availableVerticalSpace": 80
+    }
+}

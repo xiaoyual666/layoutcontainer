@@ -1,0 +1,39 @@
+{
+    "id": "container",
+    "type": "LAYOUT_CONTAINER",
+    "path": [],
+ 
+    "leading": {
+        "id": "cell_leading",
+        "type": "LAYOUT_CELL",
+        "path": ["leading"],
+        "x": 0,
+        "y": 100,
+        "width": 150,
+        "height": 300,
+        "availableHorizontalSpace": 130,
+        "availableVerticalSpace": 280
+    },
+    "center": {
+        "id": "cell_center",
+        "type": "LAYOUT_CELL",
+        "path": ["center"],
+        "x": 150,
+        "y": 100,
+        "width": 200,
+        "height": 300,
+        "availableHorizontalSpace": 180,
+        "availableVerticalSpace": 280
+    },
+    "trailing": {
+        "id": "cell_trailing",
+        "type": "LAYOUT_CELL",
+        "path": ["trailing"],
+        "x": 350,
+        "y": 100,
+        "width": 150,
+        "height": 300,
+        "availableHorizontalSpace": 130,
+        "availableVerticalSpace": 280
+    }
+}

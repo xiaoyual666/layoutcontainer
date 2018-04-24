@@ -1,0 +1,2 @@
+export const TYPE_CELL = "LAYOUT_CELL"
+export const TYPE_CONTAINER = "LAYOUT_CONTAINER"
