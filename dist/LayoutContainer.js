@@ -85,7 +85,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utls_ResizeDetector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utls/ResizeDetector */ "./utls/ResizeDetector.js");
 /* harmony import */ var _utls_RegionResizer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utls/RegionResizer */ "./utls/RegionResizer.js");
 /* harmony import */ var _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utls/SplitterResizer */ "./utls/SplitterResizer.js");
-/* harmony import */ var _utls_Constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utls/Constants */ "./utls/Constants.js");
+/* harmony import */ var _utls_BorderResizer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utls/BorderResizer */ "./utls/BorderResizer.js");
+/* harmony import */ var _utls_Constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./utls/Constants */ "./utls/Constants.js");
+
 
 
 
@@ -95,11 +97,11 @@ __webpack_require__.r(__webpack_exports__);
 
 var defaultExport = function defaultExport(state) {
     this._rootContainerState = state
-    this._flattenedStates = this._flattenContainerState(this._rootContainerState)
+    this._flattenedStates = this._flattenContainerState()
     this._eventEmitter = new events__WEBPACK_IMPORTED_MODULE_0___default.a()
 };
 
-defaultExport.prototype._flattenContainerState = function _flattenContainerState (state) {
+defaultExport.prototype._flattenContainerState = function _flattenContainerState () {
     var flattenContainerStates = {}
     var callback = function(parent, curr) {
         flattenContainerStates[curr.id] = {
@@ -107,19 +109,31 @@ defaultExport.prototype._flattenContainerState = function _flattenContainerState
             parent: parent
         }
     }
-    this.traverse(state, {
+    this.traverse({
         onCellVisited: callback,
         onContainerVisited: callback
     })
+    return flattenContainerStates
+};
+
+defaultExport.prototype.getRootContainerState = function getRootContainerState () {
+    return this._rootContainerState
+};
+
+defaultExport.prototype.getStateByPath = function getStateByPath (path) {
+    var state = this._rootContainerState
+    path.forEach(function (region) { return state = state[region]; })
+    return state
 };
 
 defaultExport.prototype.on = function on (type, callback) {
-    return this._eventEmitter(type, callback)
+    return this._eventEmitter.on(type, callback)
 };
 
 defaultExport.prototype.traverse = function traverse (option) {
     var _traverse = function(parent, state) {
-        if ( state.type === _utls_Constants__WEBPACK_IMPORTED_MODULE_4__["TYPE_CELL"]) {
+        if (!state) { return }
+        if ( state.type === _utls_Constants__WEBPACK_IMPORTED_MODULE_5__["TYPE_CELL"]) {
             if (typeof option.onCellVisited === "function") {
                 option.onCellVisited.call(this, parent, state)
             }
@@ -131,7 +145,7 @@ defaultExport.prototype.traverse = function traverse (option) {
             _traverse(state, state.bottom)
                 
             if (typeof option.onContainerVisited === "function") {
-                option.onContainerVisite.call(this, parent, state)
+                option.onContainerVisited.call(this, parent, state)
             }
         }
     }
@@ -159,63 +173,43 @@ defaultExport.prototype._resizeByRegion = function _resizeByRegion (state, regio
             break
     }
 
-    parentState = this._flattenedStates[state.id].parent
-    currentStateRegion = state.path[state.path.length - 1]
+    var parentState = this._flattenedStates[state.id].parent,
+        currentStateRegion = state.path[state.path.length - 1]
 
     this._resizeByRegion(parentState, currentStateRegion, offsets)
 };
 
-defaultExport.prototype.resizeBySplitter = function resizeBySplitter (path, offsets) {
-    var offsetX = offset[0],
-        offsetY = offset[1],
-        offsetRemainX = offsetX,
-        offsetRemainY = offsetY,
-        offsetUsed = 0,
-        pathLen = path.length,
-        region = path[pathLen - 1],
-        parentState = rootState,
-        leafState = rootState
-
-    path.forEach(function(key, index) {
-        if (index != pathLen - 1) {
-            leafState = parentState = parentState[key]
-        } else {
-            leafState = leafState[key]
-        }
-    })
+defaultExport.prototype._resizeBySplitter = function _resizeBySplitter (parentState, region, offsets) {
+    var offsetRemainX = offsets[0],
+        offsetRemainY = offsets[1]
 
     switch(region) {
         case "leading":
             offsetRemainY = 0
-            offsetRemainX = _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__["default"].moveLeadingSplitter(parentState, offsetRemainX)
+            offsetRemainX = _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__["default"].moveLeadingSplitter(parentState, offsetRemainX, this._eventEmitter)
             break
         case "top":
             offsetRemainX = 0
-            offsetRemainY = _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__["default"].moveTopSplitter(parentState, offsetRemainY)
+            offsetRemainY = _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__["default"].moveTopSplitter(parentState, offsetRemainY, this._eventEmitter)
             break
         case "trailing":
             offsetRemainY = 0
-            offsetRemainX = _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__["default"].moveTrailingSplitter(parentState, offsetRemainX)
+            offsetRemainX = _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__["default"].moveTrailingSplitter(parentState, offsetRemainX, this._eventEmitter)
             break
         case "bottom":
             offsetRemainX = 0
-            offsetRemainY = _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__["default"].moveBottomSplitter(parentState, offsetRemainY)
+            offsetRemainY = _utls_SplitterResizer__WEBPACK_IMPORTED_MODULE_3__["default"].moveBottomSplitter(parentState, offsetRemainY, this._eventEmitter)
             break
     }
         
-    this._resizeByRegion(parentState, region, [offsetRemainX, offsetRemainY])
+    return [offsetRemainX, offsetRemainY]
 };
 
-defaultExport.prototype.resizeByRegion = function resizeByRegion (path, offset) {
-    var offsetX = offset[0],
-        offsetY = offset[1],
-        offsetRemainX = offsetX,
-        offsetRemainY = offsetY,
-        offsetUsed = 0,
-        pathLen = path.length,
+defaultExport.prototype.resizeBySplitter = function resizeBySplitter (path, offsets) {
+    var pathLen = path.length,
         region = path[pathLen - 1],
-        parentState = rootState,
-        leafState = rootState
+        parentState = this._rootContainerState,
+        leafState = this._rootContainerState
 
     path.forEach(function(key, index) {
         if (index != pathLen - 1) {
@@ -224,8 +218,26 @@ defaultExport.prototype.resizeByRegion = function resizeByRegion (path, offset) 
             leafState = leafState[key]
         }
     })
+    var remainOffsets = this._resizeBySplitter(parentState, region, offsets)
+    this._resizeByRegion(parentState, region, remainOffsets)
+    this._resizeBySplitter(parentState, region, remainOffsets)
+};
 
-    this._resizeByRegion(parentState, region, [offsetRemainX, offsetRemainY])
+defaultExport.prototype.resizeByEdge = function resizeByEdge (edge, offset) {
+    switch(edge) {
+        case "top":
+            _utls_BorderResizer__WEBPACK_IMPORTED_MODULE_4__["default"].moveTopBorder(this._rootContainerState, offset, this._eventEmitter)
+            break;
+        case "bottom":
+            _utls_BorderResizer__WEBPACK_IMPORTED_MODULE_4__["default"].moveBottomBorder(this._rootContainerState, offset, this._eventEmitter)
+            break;
+        case "left":
+            _utls_BorderResizer__WEBPACK_IMPORTED_MODULE_4__["default"].moveLeftBorder(this._rootContainerState, offset, this._eventEmitter)
+            break;
+        case "right":
+            _utls_BorderResizer__WEBPACK_IMPORTED_MODULE_4__["default"].moveRightBorder(this._rootContainerState, offset, this._eventEmitter)
+            break;
+    }
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (defaultExport);
@@ -560,17 +572,19 @@ function isUndefined(arg) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Constants */ "./utls/Constants.js");
 /* harmony import */ var _Mover__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Mover */ "./utls/Mover.js");
+/* harmony import */ var _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ResizeDetector */ "./utls/ResizeDetector.js");
 
 
 
-function moveBottomBorder (prop, offset, emitter) {
-    if (!prop || offset === 0) { return }
-    if (prop.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
-        prop.height += offset
-        prop.availableVerticalSpace += offset
+
+function moveBottomBorder (state, offset, emitter) {
+    if (!state || offset === 0) { return }
+    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
+        state.height += offset
+        state.availableVerticalSpace += offset
         if (emitter) {
             emitter.emit("resizing", {
-                prop: prop,
+                state: state,
                 key: "height"
             })
         }
@@ -583,62 +597,62 @@ function moveBottomBorder (prop, offset, emitter) {
         if (offsetRemain < 0) {
 
             // eat space on bottom region
-            availableVerticalSpace = ResizeDetector.findVerticalSpace(prop.bottom)
+            availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpace(state.bottom)
             offsetCanUse = -Math.min(availableVerticalSpace, -offsetRemain)
             offsetRemain = offsetRemain - offsetCanUse
-            moveBottomBorder(prop.bottom, offsetCanUse, emitter)
+            moveBottomBorder(state.bottom, offsetCanUse, emitter)
 
             if (offsetRemain === 0) { return offsetRemain }
 
-            availableVerticalSpace = ResizeDetector.findVerticalSpaceBetweenTopBottom(prop)
+            availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpaceBetweenTopBottom(state)
             offsetCanUse = -Math.min(availableVerticalSpace, -offsetRemain)
             offsetRemain = offsetRemain - offsetCanUse
-            moveBottomBorder(prop.leading, offsetCanUse, emitter)
-            moveBottomBorder(prop.center, offsetCanUse, emitter)
-            moveBottomBorder(prop.trailing, offsetCanUse, emitter)
-            Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.bottom, offsetCanUse, emitter)
+            moveBottomBorder(state.leading, offsetCanUse, emitter)
+            moveBottomBorder(state.center, offsetCanUse, emitter)
+            moveBottomBorder(state.trailing, offsetCanUse, emitter)
+            Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.bottom, offsetCanUse, emitter)
 
             // eat space on the top region.
-            if (prop.top) {
-                availableVerticalSpace = ResizeDetector.findVerticalSpace(prop.bottom)
+            if (state.top) {
+                availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpace(state.top)
                 offsetCanUse = -Math.min(availableVerticalSpace, -offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
-                moveBottomBorder(prop.top, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.leading, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.center, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.trailing, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.bottom, offsetCanUse, emitter)
+                moveBottomBorder(state.top, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.leading, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.center, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.trailing, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.bottom, offsetCanUse, emitter)
             }
             return offsetRemain
 
         } else {
-            if (prop.bottom) {
-                moveBottomBorder(prop.bottom, offset, emitter)
-            } else if (prop.leading || prop.center || prop.trailing) {
-                moveBottomBorder(prop.leading, offset, emitter)
-                moveBottomBorder(prop.center, offset, emitter)
-                moveBottomBorder(prop.trailing, offset, emitter)
+            if (state.bottom) {
+                moveBottomBorder(state.bottom, offset, emitter)
+            } else if (state.leading || state.center || state.trailing) {
+                moveBottomBorder(state.leading, offset, emitter)
+                moveBottomBorder(state.center, offset, emitter)
+                moveBottomBorder(state.trailing, offset, emitter)
             } else {
-                moveBottomBorder(prop.top, offset, emitter)
+                moveBottomBorder(state.top, offset, emitter)
             }
             return 0
         }
     }
 }
 
-function moveLeftBorder (prop, offset, emitter) {
-    if (!prop || offset === 0) { return }
-    if (prop.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
-        prop.x += offset
-        prop.width -= offset
-        prop.availableHorizontalSpace -= offset
+function moveLeftBorder (state, offset, emitter) {
+    if (!state || offset === 0) { return }
+    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
+        state.x += offset
+        state.width -= offset
+        state.availableHorizontalSpace -= offset
         if (emitter) {
             emitter.emit("resizing", {
-                prop: prop,
+                state: state,
                 key: "x"
             })
             emitter.emit("resizing", {
-                prop: prop,
+                state: state,
                 key: "width"
             })
 
@@ -654,68 +668,68 @@ function moveLeftBorder (prop, offset, emitter) {
             availableHorizontalSpaceForTrailing = 0
 
         if (offset > 0) {
-            availableHorizontalSpace = ResizeDetector.findHorizontalSpace(prop)
+            availableHorizontalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state)
             if (availableHorizontalSpace === 0 || offsetRemain === 0) { return offsetRemain }
 
-            if (prop.leading) {
-                availableHorizontalSpaceForLeading = ResizeDetector.findHorizontalSpace(prop.leading)
+            if (state.leading) {
+                availableHorizontalSpaceForLeading = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.leading)
                 offsetCanUse = Math.min(availableHorizontalSpaceForLeading, availableHorizontalSpace, offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
                 availableHorizontalSpace -= offsetCanUse
 
-                moveLeftBorder(prop.top, offsetCanUse, emitter)
-                moveLeftBorder(prop.leading, offsetCanUse, emitter)
-                moveLeftBorder(prop.bottom, offsetCanUse, emitter)
+                moveLeftBorder(state.top, offsetCanUse, emitter)
+                moveLeftBorder(state.leading, offsetCanUse, emitter)
+                moveLeftBorder(state.bottom, offsetCanUse, emitter)
             }
             if (availableHorizontalSpace === 0 || offsetRemain === 0) { return offsetRemain }
-            if (prop.center) {
-                availableHorizontalSpaceForCenter = ResizeDetector.findHorizontalSpace(prop.center)
+            if (state.center) {
+                availableHorizontalSpaceForCenter = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.center)
                 offsetCanUse = Math.min(availableHorizontalSpace,availableHorizontalSpaceForCenter, offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
                 availableHorizontalSpace -= offsetCanUse
 
-                moveLeftBorder(prop.top, offsetCanUse, emitter)
-                moveLeftBorder(prop.bottom, offsetCanUse, emitter)
-                moveLeftBorder(prop.center, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(prop.leading, offsetCanUse, emitter)
+                moveLeftBorder(state.top, offsetCanUse, emitter)
+                moveLeftBorder(state.bottom, offsetCanUse, emitter)
+                moveLeftBorder(state.center, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(state.leading, offsetCanUse, emitter)
             }
             if (availableHorizontalSpace === 0 || offsetRemain === 0) { return offsetRemain }
-            if (prop.trailing) {
-                availableHorizontalSpaceForTrailing = ResizeDetector.findHorizontalSpace(prop.trailing)
+            if (state.trailing) {
+                availableHorizontalSpaceForTrailing = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.trailing)
                 offsetCanUse = Math.min(availableHorizontalSpace, availableHorizontalSpaceForTrailing, offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
                 availableHorizontalSpace -= offsetCanUse
-                moveLeftBorder(prop.top, offsetCanUse, emitter)
-                moveLeftBorder(prop.bottom, offsetCanUse, emitter)
-                moveLeftBorder(prop.trailing, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(prop.leading, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(prop.center, offsetCanUse, emitter)
+                moveLeftBorder(state.top, offsetCanUse, emitter)
+                moveLeftBorder(state.bottom, offsetCanUse, emitter)
+                moveLeftBorder(state.trailing, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(state.leading, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(state.center, offsetCanUse, emitter)
             }
             return offsetRemain
 
         } else {
-            moveLeftBorder(prop.top, offset, emitter)
-            if (prop.leading) {
-                moveLeftBorder(prop.leading, offset, emitter)
-            } else if (prop.center) {
-                moveLeftBorder(prop.center, offset, emitter)
+            moveLeftBorder(state.top, offset, emitter)
+            if (state.leading) {
+                moveLeftBorder(state.leading, offset, emitter)
+            } else if (state.center) {
+                moveLeftBorder(state.center, offset, emitter)
             } else {
-                moveLeftBorder(prop.trailing, offset, emitter)
+                moveLeftBorder(state.trailing, offset, emitter)
             }
-            moveLeftBorder(prop.bottom, offset, emitter)
+            moveLeftBorder(state.bottom, offset, emitter)
             return 0
         }
     }
 }
 
-function moveRightBorder(prop, offset, emitter) {
-    if (!prop || offset === 0) { return offset }
-    if (prop.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
-        prop.width += offset
-        prop.availableHorizontalSpace += offset
+function moveRightBorder(state, offset, emitter) {
+    if (!state || offset === 0) { return offset }
+    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
+        state.width += offset
+        state.availableHorizontalSpace += offset
         if (emitter) {
             emitter.emit("resizing", {
-                prop: prop,
+                state: state,
                 key: "width"
             })
         }
@@ -730,73 +744,73 @@ function moveRightBorder(prop, offset, emitter) {
             availableHorizontalSpaceForTrailing = 0
 
         if (offset < 0) {
-            availableHorizontalSpace = ResizeDetector.findHorizontalSpace(prop)
+            availableHorizontalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state)
             if (availableHorizontalSpace === 0 || offsetRemain === 0) { return offsetRemain }
-            if (prop.trailing) {
-                availableHorizontalSpaceForTrailing = ResizeDetector.findHorizontalSpace(prop.trailing)
+            if (state.trailing) {
+                availableHorizontalSpaceForTrailing = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.trailing)
                 offsetCanUse = -Math.min(availableHorizontalSpaceForTrailing, availableHorizontalSpace, -offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
                 availableHorizontalSpace += offsetCanUse
 
-                moveRightBorder(prop.top, offsetCanUse, emitter)
-                moveRightBorder(prop.trailing, offsetCanUse, emitter)
-                moveRightBorder(prop.bottom, offsetCanUse, emitter)
+                moveRightBorder(state.top, offsetCanUse, emitter)
+                moveRightBorder(state.trailing, offsetCanUse, emitter)
+                moveRightBorder(state.bottom, offsetCanUse, emitter)
             }
             if (availableHorizontalSpace === 0 || offsetRemain === 0) { return offsetRemain }
-            if (prop.center) {
-                availableHorizontalSpaceForCenter = ResizeDetector.findHorizontalSpace(prop.center)
+            if (state.center) {
+                availableHorizontalSpaceForCenter = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.center)
                 offsetCanUse = -Math.min(availableHorizontalSpace,availableHorizontalSpaceForCenter, -offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
                 availableHorizontalSpace += offsetCanUse
 
-                moveRightBorder(prop.top, offsetCanUse, emitter)
-                moveRightBorder(prop.bottom, offsetCanUse, emitter)
-                moveRightBorder(prop.center, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(prop.trailing, offsetCanUse, emitter)
+                moveRightBorder(state.top, offsetCanUse, emitter)
+                moveRightBorder(state.bottom, offsetCanUse, emitter)
+                moveRightBorder(state.center, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(state.trailing, offsetCanUse, emitter)
             }
             if (availableHorizontalSpace === 0 || offsetRemain === 0) { return offsetRemain }
-            if (prop.leading) {
-                availableHorizontalSpaceForLeading = ResizeDetector.findHorizontalSpace(prop.leading)
+            if (state.leading) {
+                availableHorizontalSpaceForLeading = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.leading)
                 offsetCanUse = -Math.min(availableHorizontalSpace, availableHorizontalSpaceForLeading, -offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
                 availableHorizontalSpace += offsetCanUse
-                moveRightBorder(prop.top, offsetCanUse, emitter)
-                moveRightBorder(prop.bottom, offsetCanUse, emitter)
-                moveRightBorder(prop.leading, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(prop.trailing, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(prop.center, offsetCanUse, emitter)
+                moveRightBorder(state.top, offsetCanUse, emitter)
+                moveRightBorder(state.bottom, offsetCanUse, emitter)
+                moveRightBorder(state.leading, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(state.trailing, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveHorizontally"])(state.center, offsetCanUse, emitter)
             }
             return offsetRemain
 
         // drag -> right
         } else {
-            moveRightBorder(prop.top, offset, emitter)
-            if (prop.trailing) {
-                moveRightBorder(prop.trailing, offset, emitter)
-            } else if (prop.center) {
-                moveRightBorder(prop.center, offset, emitter)
+            moveRightBorder(state.top, offset, emitter)
+            if (state.trailing) {
+                moveRightBorder(state.trailing, offset, emitter)
+            } else if (state.center) {
+                moveRightBorder(state.center, offset, emitter)
             } else {
-                moveRightBorder(prop.leading, offset, emitter)
+                moveRightBorder(state.leading, offset, emitter)
             }
-            moveRightBorder(prop.bottom, offset, emitter)
+            moveRightBorder(state.bottom, offset, emitter)
             return 0
         }
     }
 }
 
-function moveTopBorder (prop, offset, emitter) {
-    if (!prop || offset === 0) { return }
-    if (prop.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
-        prop.y += offset
-        prop.height -= offset
-        prop.availableVerticalSpace -= offset
+function moveTopBorder (state, offset, emitter) {
+    if (!state || offset === 0) { return }
+    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
+        state.y += offset
+        state.height -= offset
+        state.availableVerticalSpace -= offset
         if (emitter) {
             emitter.emit("resizing", {
-                prop: prop,
+                state: state,
                 key: "y"
             })
             emitter.emit("resizing", {
-                prop: prop,
+                state: state,
                 key: "height"
             })
         }
@@ -808,46 +822,46 @@ function moveTopBorder (prop, offset, emitter) {
 
         if (offsetRemain > 0) {
 
-            if (prop.top) {
-                availableVerticalSpace = ResizeDetector.findVerticalSpace(prop.top)
+            if (state.top) {
+                availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpace(state.top)
                 offsetCanUse = Math.min(availableVerticalSpace, offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
-                this.resize(prop.top, offsetCanUse, emitter)
+                moveTopBorder(state.top, offsetCanUse, emitter)
             }
 
             if (offsetRemain === 0) { return offsetRemain }
 
-            availableVerticalSpace = ResizeDetector.findVerticalSpaceBetweenTopBottom(prop)
+            availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpaceBetweenTopBottom(state)
             offsetCanUse = Math.min(availableVerticalSpace, offsetRemain)
             offsetRemain = offsetRemain - offsetCanUse
-            moveTopBorder(prop.leading, offsetCanUse, emitter)
-            moveTopBorder(prop.center, offsetCanUse, emitter)
-            moveTopBorder(prop.trailing, offsetCanUse, emitter)
-            Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.top, offsetCanUse, emitter)
+            moveTopBorder(state.leading, offsetCanUse, emitter)
+            moveTopBorder(state.center, offsetCanUse, emitter)
+            moveTopBorder(state.trailing, offsetCanUse, emitter)
+            Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.top, offsetCanUse, emitter)
 
             // eat space in bottom region
-            if (prop.bottom) {
-                availableVerticalSpace = ResizeDetector.findVerticalSpace(prop.bottom)
+            if (state.bottom) {
+                availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpace(state.bottom)
                 offsetCanUse = Math.min(availableVerticalSpace, offsetRemain)
                 offsetRemain = offsetRemain - offsetCanUse
-                moveTopBorder(prop.bottom, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.leading, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.center, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.trailing, offsetCanUse, emitter)
-                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(prop.top, offsetCanUse, emitter)
+                moveTopBorder(state.bottom, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.leading, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.center, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.trailing, offsetCanUse, emitter)
+                Object(_Mover__WEBPACK_IMPORTED_MODULE_1__["moveVertically"])(state.top, offsetCanUse, emitter)
             }
             return offsetRemain
 
         // drag -> up
         } else {
-            if (prop.top) {
-                moveTopBorder(prop.top, offset, emitter)
-            } else if (prop.leading || prop.center || prop.trailing) {
-                moveTopBorder(prop.leading, offset, emitter)
-                moveTopBorder(prop.center, offset, emitter)
-                moveTopBorder(prop.trailing, offset, emitter)
+            if (state.top) {
+                moveTopBorder(state.top, offset, emitter)
+            } else if (state.leading || state.center || state.trailing) {
+                moveTopBorder(state.leading, offset, emitter)
+                moveTopBorder(state.center, offset, emitter)
+                moveTopBorder(state.trailing, offset, emitter)
             } else {
-                moveTopBorder(prop.bottom, offset, emitter)
+                moveTopBorder(state.bottom, offset, emitter)
             }
             return 0
         }
@@ -887,9 +901,12 @@ var TYPE_CONTAINER = "LAYOUT_CONTAINER"
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "moveVertically", function() { return moveVertically; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "moveHorizontally", function() { return moveHorizontally; });
+/* harmony import */ var _Constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Constants */ "./utls/Constants.js");
+
+
 function _move(state, offset, key, emitter) {
     if (!state || offset === 0) { return; }
-    if (state.type === LayoutTemplateConstants.LAYOUT_REGION) {
+    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) {
         state[key] += offset;
         if (emitter) {
             emitter.emit("resizing", {
@@ -958,7 +975,7 @@ function moveTopRegionVertically(state, offset, emitter) {
 function moveTopRegion(state, offsets, emitter) {
     if (!state || state.type === _Constants__WEBPACK_IMPORTED_MODULE_1__["TYPE_CELL"]) { return offsets }
     return [
-        offset,
+        offsets[0],
         moveTopRegionVertically(state, offsets[1], emitter)
     ]
 }
@@ -972,7 +989,7 @@ function moveBottomRegionVertically(state, offset, emitter) {
 function moveBottomRegion(state, offsets, emitter) {
     if (!state || state.type === _Constants__WEBPACK_IMPORTED_MODULE_1__["TYPE_CELL"]) { return offsets }
     return [
-        offset,
+        offsets[0],
         moveBottomRegionVertically(state, offsets[1], emitter)
     ]
 }
@@ -1031,17 +1048,17 @@ __webpack_require__.r(__webpack_exports__);
 
 function findVerticalSpace(state) {
     if (!state) { return 0 }
-    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) { return state.avaliableVerticalSpace }
+    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) { return state.availableVerticalSpace }
     var verticalSpace = 0
     if (state.top) { verticalSpace += findVerticalSpace(state.top) }
     if (state.bottom) { verticalSpace += findVerticalSpace(state.bottom) }
-    verticalSpace += getVerticalSpaceBewteenTopBottom(state);
+    verticalSpace += findVerticalSpaceBetweenTopBottom(state)
     return verticalSpace
 }
 
 function findHorizontalSpace(state) {
     if (!state) { return 0 }
-    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) { return state.avaliableHorizontalSpace }
+    if (state.type === _Constants__WEBPACK_IMPORTED_MODULE_0__["TYPE_CELL"]) { return state.availableHorizontalSpace }
     var horizontalSpace = 0,
         horizontalSpaceForTopBottom = 0,
         horizontalSpaceForLeadingCenterTrailing =0
@@ -1130,7 +1147,9 @@ function findHorizontalSpaceBeforeTrailing(state) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Constants */ "./utls/Constants.js");
 /* harmony import */ var _BorderResizer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./BorderResizer */ "./utls/BorderResizer.js");
-/* harmony import */ var _Mover__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Mover */ "./utls/Mover.js");
+/* harmony import */ var _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ResizeDetector */ "./utls/ResizeDetector.js");
+/* harmony import */ var _Mover__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Mover */ "./utls/Mover.js");
+
 
 
 
@@ -1143,7 +1162,7 @@ function moveTopSplitter(state, offset, emitter) {
         availableVerticalSpace = 0
     
         if (offsetRemain > 0) {
-            availableVerticalSpace = ResizeDetector.findSpaceBetweenTopAndButton(state)
+            availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpaceBetweenTopBottom(state)
             offsetCanUse = Math.min(availableVerticalSpace, offsetRemain)
             offsetRemain -= offsetCanUse
 
@@ -1152,19 +1171,19 @@ function moveTopSplitter(state, offset, emitter) {
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveTopBorder(state.center, offsetCanUse, emitter)
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveTopBorder(state.trailing, offsetCanUse, emitter)
 
-            availableVerticalSpace = ResizeDetector.findVerticalSpace(state.bottom)
+            availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpace(state.bottom)
             offsetCanUse = Math.min(availableVerticalSpace, offsetRemain)
             offsetRemain -= offsetCanUse
 
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveBottomBorder(state.top, offsetCanUse, emitter)
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveTopBorder(state.bottom, offsetCanUse, emitter)
 
-            Object(_Mover__WEBPACK_IMPORTED_MODULE_2__["moveVertically"])(state.leading, offsetCanUse, emitter)
-            Object(_Mover__WEBPACK_IMPORTED_MODULE_2__["moveVertically"])(state.center, offsetCanUse, emitter)
-            Object(_Mover__WEBPACK_IMPORTED_MODULE_2__["moveVertically"])(state.trailing, offsetCanUse, emitter)
+            Object(_Mover__WEBPACK_IMPORTED_MODULE_3__["moveVertically"])(state.leading, offsetCanUse, emitter)
+            Object(_Mover__WEBPACK_IMPORTED_MODULE_3__["moveVertically"])(state.center, offsetCanUse, emitter)
+            Object(_Mover__WEBPACK_IMPORTED_MODULE_3__["moveVertically"])(state.trailing, offsetCanUse, emitter)
 
         } else {
-            availableVerticalSpace = ResizeDetector.findVerticalSpace(state.top)
+            availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpace(state.top)
             offsetCanUse = - Math.min(availableVerticalSpace, - offsetRemain)
             offsetRemain -= offsetCanUse
 
@@ -1185,7 +1204,7 @@ function moveLeadingSplitter(state, offset, emitter) {
 
     if (offsetRemain > 0) {
         if (state.center) {
-            availableHorizontalSpace = ResizeDetector.findHorizontalSpace(state.center)
+            availableHorizontalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.center)
             offsetCanUse = Math.min(offsetRemain, availableHorizontalSpace)
             offsetRemain -= offsetCanUse
 
@@ -1194,17 +1213,17 @@ function moveLeadingSplitter(state, offset, emitter) {
         }
 
         if (state.trailing) {
-            availableHorizontalSpace = ResizeDetector.findHorizontalSpace(state.trailing)
+            availableHorizontalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.trailing)
             offsetCanUse = Math.min(offsetRemain, availableHorizontalSpace)
             offsetRemain -= offsetCanUse
 
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveRightBorder(state.leading, offsetCanUse, emitter)
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveLeftBorder(state.trailing, offsetCanUse, emitter)
 
-            Object(_Mover__WEBPACK_IMPORTED_MODULE_2__["moveHorizontally"])(state,center, offsetCanUse, emitter)
+            Object(_Mover__WEBPACK_IMPORTED_MODULE_3__["moveHorizontally"])(state.center, offsetCanUse, emitter)
         }
     } else {
-        availableHorizontalSpace = ResizeDetector.findHorizontalSpace(state.leading)
+        availableHorizontalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.leading)
         offsetCanUse = - Math.min(availableHorizontalSpace, -offsetRemain)
         offsetRemain -= offsetCanUse
 
@@ -1228,7 +1247,7 @@ function moveTrailingSplitter(state, offset, emitter) {
     if (offsetRemain < 0) {
 
         if (state.center) {
-            availableHorizontalSpace = ResizeDetector.findHorizontalSpace(state.center);
+            availableHorizontalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.center);
             offsetCanUse = -Math.min(-offsetRemain, availableHorizontalSpace);
             offsetRemain = offsetRemain - offsetCanUse;
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveLeftBorder(state.trailing, offsetCanUse, emitter);
@@ -1236,16 +1255,16 @@ function moveTrailingSplitter(state, offset, emitter) {
         }
 
         if (state.leading) {
-            availableHorizontalSpace = ResizeDetector.findHorizontalSpace(state.leading);
+            availableHorizontalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.leading);
             offsetCanUse = -Math.min(-offsetRemain, availableHorizontalSpace);
             offsetRemain = offsetRemain - offsetCanUse;
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveRightBorder(state.leading, offsetCanUse, emitter);
             _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveLeftBorder(state.trailing, offsetCanUse, emitter);
-            Object(_Mover__WEBPACK_IMPORTED_MODULE_2__["moveHorizontally"])(state.center, offsetCanUse, emitter);
+            Object(_Mover__WEBPACK_IMPORTED_MODULE_3__["moveHorizontally"])(state.center, offsetCanUse, emitter);
         }
 
     } else {
-        availableHorizontalSpace = ResizeDetector.findHorizontalSpace(state.trailing);
+        availableHorizontalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findHorizontalSpace(state.trailing);
         offsetCanUse = Math.min(offsetRemain, availableHorizontalSpace);
         offsetRemain = offsetRemain - offsetCanUse;
         _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveLeftBorder(state.trailing, offsetCanUse, emitter);
@@ -1267,7 +1286,7 @@ function moveBottomSplitter(state, offset, emitter) {
 
     if (offsetRemain < 0) {
 
-        availableVerticalSpace = ResizeDetector.findSpaceBetweenTopAndButton(state);
+        availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpaceBetweenTopBottom(state);
 
         offsetCanUse = - Math.min(availableVerticalSpace, -offsetRemain);
         offsetRemain = offsetRemain - offsetCanUse;
@@ -1277,7 +1296,7 @@ function moveBottomSplitter(state, offset, emitter) {
         _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveBottomBorder(state.center, offsetCanUse, emitter);
         _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveBottomBorder(state.trailing, offsetCanUse, emitter);
 
-        availableVerticalSpace = ResizeDetector.findVerticalSpace(state.top);
+        availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpace(state.top);
         if (availableVerticalSpace === Number.POSITIVE_INFINITY) {
             availableVerticalSpace = 0;
         }
@@ -1285,13 +1304,13 @@ function moveBottomSplitter(state, offset, emitter) {
         offsetRemain = offsetRemain - offsetCanUse;
         _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveBottomBorder(state.top, offsetCanUse, emitter);
         _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveTopBorder(state.bottom, offsetCanUse, emitter);
-        Object(_Mover__WEBPACK_IMPORTED_MODULE_2__["moveVertically"])(state.leading, offsetCanUse, emitter)
-        Object(_Mover__WEBPACK_IMPORTED_MODULE_2__["moveVertically"])(state.center, offsetCanUse, emitter)
-        Object(_Mover__WEBPACK_IMPORTED_MODULE_2__["moveVertically"])(state.trailing, offsetCanUse, emitter)
+        Object(_Mover__WEBPACK_IMPORTED_MODULE_3__["moveVertically"])(state.leading, offsetCanUse, emitter)
+        Object(_Mover__WEBPACK_IMPORTED_MODULE_3__["moveVertically"])(state.center, offsetCanUse, emitter)
+        Object(_Mover__WEBPACK_IMPORTED_MODULE_3__["moveVertically"])(state.trailing, offsetCanUse, emitter)
 
     } else {
 
-        availableVerticalSpace = ResizeDetector.findVerticalSpace(state.bottom);
+        availableVerticalSpace = _ResizeDetector__WEBPACK_IMPORTED_MODULE_2__["default"].findVerticalSpace(state.bottom);
         offsetCanUse = Math.min(availableVerticalSpace, offsetRemain);
         offsetRemain = offsetRemain - offsetCanUse;
         _BorderResizer__WEBPACK_IMPORTED_MODULE_1__["default"].moveTopBorder(state.bottom, offsetCanUse, emitter);
