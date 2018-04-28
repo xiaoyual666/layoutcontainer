@@ -3,12 +3,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
     entry: {
-        // LayoutContainer: "./index.js",
+        LayoutContainer: "./index.js",
         example: "./example/example.js"
     },
     output: {
         path: path.resolve(__dirname, "dist"),
-        filename: "[name].js"
+        filename: "[name].js",
+        library: "[name]",
+        libraryTarget: "umd"
     },
     module: {
         rules: [
