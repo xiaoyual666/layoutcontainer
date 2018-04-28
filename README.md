@@ -1,5 +1,11 @@
 ### Live Demo: https://xiaoyual666.github.io/layoutcontainer/
 
+installation
+------------
+```shell
+> npm i layoutcontainer
+```
+
 Concepts
 ------------
 A layout container contains at most 5 regions:<br>
