@@ -69,7 +69,7 @@ let rootStructureData = {
 const LayoutContainer = require("LayoutContainer")
 let rootContainer = LayoutContainer(rootStructureData)
 ```
-## 3. resize
+## 3. Resize
 ```javascript
 rootContainer.resizeBySplitter(["top", [100,200]])
 ```
