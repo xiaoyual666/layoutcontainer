@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
     entry: {
-        LayoutContainer: "./index.js",
+        // LayoutContainer: "./index.js",
         example: "./example/example.js"
     },
     output: {
