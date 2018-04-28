@@ -72,7 +72,7 @@ let rootStructureData = {
 ```
 ## 2. Create LayoutContainer instance
 ```javascript
-const LayoutContainer = require("LayoutContainer")
+const LayoutContainer = require("Layoutcontainer")
 let rootContainer = LayoutContainer(rootStructureData)
 ```
 ## 3. Resize
