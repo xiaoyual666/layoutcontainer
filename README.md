@@ -95,9 +95,10 @@ API
 ```javascript
 let layoutContainer = new LayoutContainer()
 ```
+
 ### for data representing container, the details of object is:
 | properties        | type           | description  |
-| ------------- |:-------------:| -----:|
+| ------------- |-------------| -----|
 | id     | String | unique string that used to identify the container |
 | path      | Array<String>      |   array of strings to locate the region or splitter |
 | top | container or cell      |  top region of the container |
@@ -108,7 +109,7 @@ let layoutContainer = new LayoutContainer()
   
 ### for data representing cell, the details of object is:
 | properties        | type           | description  |
-| ------------- |:-------------:| -----:|
+| ------------- |-------------| -----|
 | id     | String | unique string that used to identify the container |
 | path      | Array<String>      |   array of strings to locate the region or splitter |
 | x | Number      | x position of cell |
