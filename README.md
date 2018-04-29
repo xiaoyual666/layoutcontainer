@@ -91,7 +91,7 @@ rootContainer.resizeBySplitter(["top", [100,200]])
 API
 ----
 ## 1. constructor
-<p>we pass data representing the structure of layout into constructor to get the intance</p>
+we pass data representing the structure of layout into constructor to get the instance
 ```javascript
 let layoutContainer = new LayoutContainer()
 ```
@@ -118,3 +118,36 @@ let layoutContainer = new LayoutContainer()
 | height | Number   |  height of cell |
 | availableHorizontalSpace | Number      |  how much pixel could this cell be reduced horizontally when resizing |
 | availableVerticalSpace | Number      |  how much pixel could this cell be reduced vertically when resizing |
+  
+## 2. resizeBySplitter( path, offsets )
+resize corresponding regions by dragging a specific splitter defined by path.
+| Parameter|type| Description|
+|---|---|---|
+| path | Array<String> | array of string that represents the splitter. Ex. ["center", "top"]|
+| offsets | [Number, Number] | dragging offset. offsets[0] is the x offset, offsets[1] is the y offset.
+
+## 3. Event
+if you are using library like React or Vue, you may not need this. Because the data will be reactive.
+However, we still provide event for you to listen to the change of the model, and you could update the view accordingly.
+| Event Name | Fired When |
+| --- |--- |
+| resizing | when x|y|width|height| changed on a cell |
+
+| Event Data | Description |
+| state | the data representing the current resized cell |
+| key | indicates which property is changed, it is useful when you want to optimize the updating logic for you view |
+
+Example: (more detail could be fould in the example folder)
+```javascript
+const LayoutContainer = require("layoutcontainer")
+
+let rootData = getRootData(), // provide root data, you need to implement this function
+    layoutContainer = new LayoutContainer(rootData),
+    view = generateViewForLayout(rootData) // you could initialize the view according to the data structure
+
+LayoutContainer.on("resizing", ({state, key}) => {
+    updateViewForCellByState(state) // you could implement logic to update the view manually if you dont use MVVM library.
+})
+
+```
+
