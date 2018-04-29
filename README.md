@@ -121,25 +121,40 @@ let layoutContainer = new LayoutContainer()
   
 ## 2. resizeBySplitter( path, offsets )
 resize corresponding regions by dragging a specific splitter defined by path.
+
 | Parameter|type| Description|
-|---|---|---|
+|----|----|----|
 | path | Array<String> | array of string that represents the splitter. Ex. ["center", "top"]|
 | offsets | [Number, Number] | dragging offset. offsets[0] is the x offset, offsets[1] is the y offset.
 
 Example:
 ```javascript
-layoutContainer.resizeBySplitter("leading", [10,10])
+layoutContainer.resizeBySplitter("leading", [10,30]) // drag the leading splitter 
+```
+
+## 2. resizeByEdge( edge, offset )
+resize entire layout container dragging edge of it.
+
+| Parameter|type| Description|
+|----|----|----|
+| edge | "top"  or "bottom"  or "left" or "right" | string that represents the edge |
+| offset | Number | dragging offset. Ex. if you move the left edge, offset will be the x offset.
+
+Example:
+```javascript
+layoutContainer.resizeByEdge("left",  50) // drag the left edge from left to right by 50px.
 ```
 
 ## 3. Event
 if you are using library like React or Vue, you may not need this. Because the data will be reactive.
 However, we still provide event for you to listen to the change of the model, and you could update the view accordingly.
+
 | Event Name | Fired When |
-| --- |--- |
+| ---- |---- |
 | resizing | when x or y or width or height changed on a cell |
 
 | Event Data | Description |
-| --- |--- |
+| ---- |---- |
 | state | the data representing the current resized cell |
 | key | indicates which property is changed, it is useful when you want to optimize the updating logic for you view |
 
