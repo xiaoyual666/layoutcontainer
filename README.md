@@ -126,14 +126,20 @@ resize corresponding regions by dragging a specific splitter defined by path.
 | path | Array<String> | array of string that represents the splitter. Ex. ["center", "top"]|
 | offsets | [Number, Number] | dragging offset. offsets[0] is the x offset, offsets[1] is the y offset.
 
+Example:
+```javascript
+layoutContainer.resizeBySplitter("leading", [10,10])
+```
+
 ## 3. Event
 if you are using library like React or Vue, you may not need this. Because the data will be reactive.
 However, we still provide event for you to listen to the change of the model, and you could update the view accordingly.
 | Event Name | Fired When |
 | --- |--- |
-| resizing | when x|y|width|height| changed on a cell |
+| resizing | when x or y or width or height changed on a cell |
 
 | Event Data | Description |
+| --- |--- |
 | state | the data representing the current resized cell |
 | key | indicates which property is changed, it is useful when you want to optimize the updating logic for you view |
 
