@@ -14,8 +14,9 @@ A layout container contains at most 5 regions:<br>
 
 Each region could be either a cell or a layout container, thus we have the flexibility to build complete layout structure.
 ##2. Splitter
-Splitters are the edges that seperate different regions within a container. We will handle the resizing of corresponding regions when you move the splitters.
+Splitters are the edges that seperate different regions within a container. We will handle the resizing of corresponding regions when you move the splitters:<br>
 <img width="450" src="https://github.com/xiaoyual666/layoutcontainer/blob/master/imgs/splitters.png" alt="splitters">
+
 Easy as 1-2-3
 --------------
 
