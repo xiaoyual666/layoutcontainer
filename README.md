@@ -90,3 +90,30 @@ rootContainer.resizeBySplitter(["top", [100,200]])
 ```
 API
 ----
+## 1. constructor
+<p>we pass data representing the structure of layout into constructor to get the intance</p>
+```javascript
+let layoutContainer = new LayoutContainer()
+```
+### for data representing container, the details of object is:
+| properties        | type           | description  |
+| ------------- |:-------------:| -----:|
+| id     | String | unique string that used to identify the container |
+| path      | Array<String>      |   array of strings to locate the region or splitter |
+| top | container or cell      |  top region of the container |
+| leading | container or cell      |  leading region of the container |
+| center | container or cell      |  center region of the container |
+| trailing | container or cell      |  trailing region of the container |
+| bottom | container or cell      |  bottom region of the container |
+  
+### for data representing cell, the details of object is:
+| properties        | type           | description  |
+| ------------- |:-------------:| -----:|
+| id     | String | unique string that used to identify the container |
+| path      | Array<String>      |   array of strings to locate the region or splitter |
+| x | Number      | x position of cell |
+| y | Number     |  y position of cell |
+| width |Number     | width of cell |
+| height | Number   |  height of cell |
+| availableHorizontalSpace | Number      |  how much pixel could this cell be reduced horizontally when resizing |
+| availableVerticalSpace | Number      |  how much pixel could this cell be reduced vertically when resizing |
