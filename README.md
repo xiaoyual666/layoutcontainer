@@ -1,6 +1,11 @@
+Layout Container
+----
+Layout Container is the resizing engine that can automatically calculates the correct position of cooresponding regions of the container when user change the position of the splitter in the container.
+User could achieve the drag-resize behavior by providing the drag offsets to this engine and it will update the data accordingly. Also, event will be emitted to notify consumer the change in the data model. See demo:
+
 ### Live Demo: https://xiaoyual666.github.io/layoutcontainer/
 
-installation
+Installation
 ------------
 ```shell
 > npm i layoutcontainer
