@@ -138,7 +138,7 @@ layoutContainer.resizeBySplitter(["leading"], [10,30]) // drag the leading split
 ```
 
 ## 2. resizeByEdge( edge, offset )
-resize entire layout container dragging edge of it.
+resize entire layout container by dragging edge of it.
 
 | Parameter|type| Description|
 |----|----|----|
