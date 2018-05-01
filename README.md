@@ -15,12 +15,12 @@ Concepts
 ------------
 ## 1. Container, Region and Cell
 A layout container contains at most 5 regions:<br>
-![alt text](https://github.com/xiaoyual666/layoutcontainer/blob/master/imgs/regions.png =450x "regions")
+![regions](https://github.com/xiaoyual666/layoutcontainer/blob/master/imgs/regions.png)
 
 Each region could be either a cell or a layout container, thus we have the flexibility to build complete layout structure.
 ## 2. Splitter
 Splitters are the edges that seperate different regions within a container. We will handle the resizing of corresponding regions when you move the splitters:<br>
-![alt text](https://github.com/xiaoyual666/layoutcontainer/blob/master/imgs/splitters.png =450x "splitters")
+![splitters](https://github.com/xiaoyual666/layoutcontainer/blob/master/imgs/splitters.png)
 
 ## 3. Path
 Path is an array of strings that represent the regions.
