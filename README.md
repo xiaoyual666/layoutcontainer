@@ -99,7 +99,7 @@ API
 ## 1. constructor
 we pass data representing the structure of layout into constructor to get the instance
 ```javascript
-let layoutContainer = new LayoutContainer()
+let layoutContainer = new LayoutContainer(dataForRootContainer)
 ```
 
 ### for data representing container, the details of object is:
