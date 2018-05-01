@@ -91,7 +91,7 @@ let rootContainer = LayoutContainer(rootStructureData)
 ```
 ## 3. Resize
 ```javascript
-rootContainer.resizeBySplitter(["top", [100,200]])
+rootContainer.resizeBySplitter(["top"], [100,200])
 ```
 API
 ----
@@ -134,7 +134,7 @@ resize corresponding regions by dragging a specific splitter defined by path.
 
 Example:
 ```javascript
-layoutContainer.resizeBySplitter("leading", [10,30]) // drag the leading splitter 
+layoutContainer.resizeBySplitter(["leading"], [10,30]) // drag the leading splitter 
 ```
 
 ## 2. resizeByEdge( edge, offset )
